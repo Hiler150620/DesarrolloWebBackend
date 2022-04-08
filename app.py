@@ -23,7 +23,7 @@ def home():
     else:
        return render_template('login.html', data=email)
 
-@app.route('/login', methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
     email = None    
     if "email" in session:
@@ -38,7 +38,7 @@ def login():
             return render_template("index.html", data=email)
 
 
-@app.route('/signup', methods=["GET", "POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
     if (request.method == "GET"):
         return render_template("login.html", data="name")
@@ -49,7 +49,7 @@ def signup():
         password = request.form["password"]
         return render_template("index.html", data=name)
 
-@app.route('logout')
+@app.route("logout")
 def logout():
     if "email" in session:
         session.clear()
