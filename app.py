@@ -1,6 +1,6 @@
-from crypt import methods
+
 from datetime import datetime
-import email
+
 from flask import Flask, render_template, request, session, redirect, url_for
 import datetime
 
@@ -21,11 +21,12 @@ def home():
         email = session["email"]
         return render_template('index.html', data=email)
     else:
-       return render_template('login.html', data=email)
+        return render_template('login.html', data=email)
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    email = None    
+    email = None
     if "email" in session:
         return render_template('index.html', data=session["email"])
     else:
@@ -49,11 +50,13 @@ def signup():
         password = request.form["password"]
         return render_template("index.html", data=name)
 
+
 @app.route("logout")
 def logout():
     if "email" in session:
         session.clear()
         return redirect(url_for("home"))
+
 
 @app.route('/estructuradedatos')
 def prueba():
