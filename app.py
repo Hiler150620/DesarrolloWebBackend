@@ -23,6 +23,17 @@ def login():
         password = request.form["password"]
         return render_template("index.html", data=email)
 
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if (request.method == "GET"):
+        return render_template("login.html", data="name")
+    else:
+        email = None
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+        return render_template("index.html", data=name)
+
 @app.route('/estructuradedatos')
 def prueba():
     nombres = []
