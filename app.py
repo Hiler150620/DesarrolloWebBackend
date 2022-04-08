@@ -19,7 +19,7 @@ def home():
     email = None
     if "email" in session:
         email = session["email"]
-        return render_template('index.html')
+        return render_template('index.html', data=email)
     else:
        return render_template('login.html', data=email)
 
