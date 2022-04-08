@@ -16,6 +16,7 @@ def home():
 
 @app.route("/login", methods=["GET"])
 def login():
+    if(request.method)
     return render_template("Login.html", error=email)
 
 
