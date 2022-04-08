@@ -1,7 +1,7 @@
 from crypt import methods
 from datetime import datetime
 import email
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect
 import datetime
 
 
@@ -49,6 +49,11 @@ def signup():
         password = request.form["password"]
         return render_template("index.html", data=name)
 
+@app.route("logout")
+def logout():
+    if "email" in session:
+        session.clear()
+        return redirect(url_for("home"))
 
 @app.route('/estructuradedatos')
 def prueba():
