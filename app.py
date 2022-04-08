@@ -1,7 +1,6 @@
 
-from datetime import datetime
-
-from flask import Flask, render_template, request, session, redirect, url_for
+import email
+from flask import Flask, redirect, render_template, request, session, url_for
 import datetime
 
 
@@ -51,7 +50,7 @@ def signup():
         return render_template("index.html", data=name)
 
 
-@app.route("logout")
+@app.route("/logout")
 def logout():
     if "email" in session:
         session.clear()
