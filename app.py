@@ -2,7 +2,7 @@
 import email
 from flask import Flask, redirect, render_template, request, session, url_for
 import datetime
-
+import pymongo
 
 # FlASK
 #############################################################
@@ -10,6 +10,15 @@ app = Flask(__name__)
 app.permanent_session_lifetime = datetime.timedelta(days=365)
 app.secret_key = "super secret key"
 
+#############################################################
+
+# MONGODB
+#############################################################
+mongodb_key = "mongodb+srv://desarrollowebuser:desarrollowebpassword@cluster0.dfh7g.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+client = pymongo.MongoClient(
+    mongodb_key, tls=True, tlsAllowInvalidCertificates=True)
+db = client.Escuela
+cuentas = db.alumno
 #############################################################
 
 
@@ -23,7 +32,7 @@ def home():
         return render_template('login.html', data=email)
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=["GET", "POST"])
 def login():
     email = None
     if "email" in session:
@@ -38,7 +47,7 @@ def login():
             return render_template("index.html", data=email)
 
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route('/signup', methods=["GET", "POST"])
 def signup():
     if (request.method == "GET"):
         return render_template("login.html", data="name")
@@ -50,26 +59,18 @@ def signup():
         return render_template("index.html", data=name)
 
 
-@app.route("/logout")
+@app.route('/logout')
 def logout():
     if "email" in session:
         session.clear()
         return redirect(url_for("home"))
 
 
-@app.route('/estructuradedatos')
-def prueba():
-    nombres = []
-    nombres.append({"nombre": "ruben",
+@app.route("/usuarios")
+def usuarios():
+    cursor = cuentas.find({})
+    users = []
+    for doc in cursor:
+        users.append(doc)
+    return render_template("/usuarios.html", data=users)
 
-                    "Semetre01": [{
-                        "matematicas": "8",
-                        "español": "7"
-                    }],
-                    "Semetre02": [{
-                        "programacion": "5",
-                        "basededatos": "9"
-                    }]
-                    })
-
-    return render_template("home.html", data=nombres)
