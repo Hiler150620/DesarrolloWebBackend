@@ -1,3 +1,6 @@
-{% for users un data %}
-    {{users.nombre}}
+{% for users in data %}
+<p>{{users.nombre}}</p>
+<p>{{users.matricula}}</p>
+<p>{{users.correo}}</p>
+<p>{{users.constrasena}}</p>
 {% endfor %}
