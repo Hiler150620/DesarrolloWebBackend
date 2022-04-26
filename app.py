@@ -3,6 +3,7 @@ import email
 from flask import Flask, redirect, render_template, request, session, url_for
 import datetime
 import pymongo
+from twilio.rest import Client
 
 # FlASK
 #############################################################
@@ -19,6 +20,13 @@ client = pymongo.MongoClient(
     mongodb_key, tls=True, tlsAllowInvalidCertificates=True)
 db = client.Escuela
 cuentas = db.alumno
+#############################################################
+
+#TWILIO
+#############################################################
+account_sid = config('AC3104cda267efdd7820039597bdca3add')
+auth_token = config('7cdd710e5c8d66b3db6006e15b6c7e0c')
+TwilioClient = Client(account_sid, auth_token)
 #############################################################
 
 
@@ -78,14 +86,21 @@ def usuarios():
 @app.route("/insert")
 def insertUsers():
     user = {
-        "matricula": "A01748393",
-        "nombre": "Carlos Garcia",
-        "correo": "A01748393@tec.mx",
-        "contrasena": "camaleon",
+        "matricula": request.form["matricula"],
+        "nombre": request.form["nombre"],
+        "correo": request.form["correo"],
+        "contrasena": request.form["contrasena"],
     }
 
     try:
         cuentas.insert_one(user)
+        whatsapp = TwilioClient.messages.create(
+            from_="whatsapp:+19706708543",
+            body="El usuario %s se agregó a tu pagina web" % (
+                request.form["nombre"]),
+            to="whatsapp:+5215537070576"
+        )
+        print(whatsapp.sid)
         return redirect(url_for("usuarios"))
     except Exception as e:
         return "<p>El servicio no esta disponible =>: %s %s" % type(e), 
