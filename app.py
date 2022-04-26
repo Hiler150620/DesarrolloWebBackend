@@ -15,11 +15,11 @@ app.secret_key = "super secret key"
 
 # MONGODB
 #############################################################
-mongodb_key = "mongodb+srv://desarrollowebuser:desarrollowebpassword@cluster0.dfh7g.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+mongodb_key = "mongodb+srv://CarlosGarcia:<password>@cluster0.2hy4l.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 client = pymongo.MongoClient(
     mongodb_key, tls=True, tlsAllowInvalidCertificates=True)
-db = client.Escuela
-cuentas = db.alumno
+db = client.Coronavirus
+cuentas = db.Usuario
 #############################################################
 
 #TWILIO
