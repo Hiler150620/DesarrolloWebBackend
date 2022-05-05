@@ -1,4 +1,3 @@
-
 from flask import Flask, redirect, url_for, request, render_template, session
 import datetime
 import pymongo
@@ -9,22 +8,22 @@ from decouple import config
 #############################################################
 app = Flask(__name__)
 app.permanent_session_lifetime = datetime.timedelta(days=365)
-app.secret_key = "secret key"
+app.secret_key = "super secret key"
 #############################################################
 
 # MONGODB
 #############################################################
-mongodb_key = "mongodb+srv://CarlosGarcia:<password>@cluster0.2hy4l.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+mongodb_key = config('mongodb_key')
 client = pymongo.MongoClient(
     mongodb_key, tls=True, tlsAllowInvalidCertificates=True)
-db = client.Coronavirus
-cuentas = db.Usuario
+db = client.Escuela
+cuentas = db.alumno
 #############################################################
 
 # Twilio
 #############################################################
-account_sid = "AC3104cda267efdd7820039597bdca3add"
-auth_token = "c0279ccc11b82fb5ed8240cd6f7c191e"
+account_sid = config('account_sid')
+auth_token = config('auth_token')
 TwilioClient = Client(account_sid, auth_token)
 #############################################################
 
@@ -32,11 +31,9 @@ TwilioClient = Client(account_sid, auth_token)
 @app.route('/')
 def home():
     email = None
-    if "email" in session:
-        email = session["email"]
-        return render_template('index.html', data=email)
-    else:
-        return render_template('login.html', data=email)
+    if 'email' in session:
+        email = session['email']
+    return render_template('index.html', error=email)
 
 
 @app.route('/login', methods=['GET'])
@@ -103,14 +100,13 @@ def insertUsers():
         "correo": request.form["correo"],
         "contrasena": request.form["contrasena"],
     }
-    
     try:
         cuentas.insert_one(user)
         comogusten = TwilioClient.messages.create(
-            from_="whatsapp:+19706708543",
+            from_="whatsapp:+14155238886",
             body="El usuario %s se agregó a tu pagina web" % (
                 request.form["nombre"]),
-            to="whatsapp:+5215537070576"
+            to="whatsapp:+5215514200581"
         )
         print(comogusten.sid)
         return redirect(url_for("usuarios"))
