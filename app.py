@@ -1,15 +1,15 @@
-import email
-from flask import Flask, redirect, render_template, request, session, url_for
+
+from flask import Flask, redirect, url_for, request, render_template, session
 import datetime
 import pymongo
 from twilio.rest import Client
+from decouple import config
 
 # FlASK
 #############################################################
 app = Flask(__name__)
 app.permanent_session_lifetime = datetime.timedelta(days=365)
-app.secret_key = "super secret key"
-
+app.secret_key = "secret key"
 #############################################################
 
 # MONGODB
@@ -21,11 +21,11 @@ db = client.Coronavirus
 cuentas = db.Usuario
 #############################################################
 
-#TWILIO
+# Twilio
 #############################################################
-#account_sid = config('AC3104cda267efdd7820039597bdca3add')
-#auth_token = config('7cdd710e5c8d66b3db6006e15b6c7e0c')
-#TwilioClient = Client(account_sid, auth_token)
+account_sid = "AC3104cda267efdd7820039597bdca3add"
+auth_token = "c0279ccc11b82fb5ed8240cd6f7c191e"
+TwilioClient = Client(account_sid, auth_token)
 #############################################################
 
 
@@ -39,38 +39,51 @@ def home():
         return render_template('login.html', data=email)
 
 
-@app.route('/login', methods=["GET", "POST"])
+@app.route('/login', methods=['GET'])
 def login():
     email = None
-    if "email" in session:
-        return render_template('index.html', data=session["email"])
-    else:
-        if (request.method == "GET"):
-            return render_template("login.html", data="email")
-        else:
-            email = request.form["email"]
-            password = request.form["password"]
-            session["email"] = email
-            return render_template("index.html", data=email)
+    if 'email' in session:
+        email = session['email']
+        return render_template('index.html', error=email)
+
+    return render_template('login.html', error=email)
 
 
-@app.route('/signup', methods=["GET", "POST"])
+@app.route('/login', methods=['POST'])
+def login2Index():
+    email = ""
+    if 'email' in session:
+        return render_template('index.html', error=email)
+
+    email = request.form['email']
+    password = request.form['password']
+    session['email'] = email
+    session['password'] = password
+
+    return render_template('index.html', error=email)
+
+
+@app.route('/signup', methods=['POST'])
 def signup():
-    if (request.method == "GET"):
-        return render_template("login.html", data="name")
+    email = ""
+    if 'email' in session:
+        return render_template('index.html', error=email)
     else:
-        email = None
-        name = request.form["name"]
-        email = request.form["email"]
-        password = request.form["password"]
-        return render_template("index.html", data=name)
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+        session['email'] = email
+        session['password'] = password
+        session['name'] = name
+    return render_template('index.html', error=email)
 
 
 @app.route('/logout')
 def logout():
-    if "email" in session:
-        session.clear()
-        return redirect(url_for("home"))
+    if 'email' in session:
+        email = session['email']
+    session.clear()
+    return redirect(url_for('home'))
 
 
 @app.route("/usuarios")
@@ -82,7 +95,7 @@ def usuarios():
     return render_template("/Usuarios.html", data=users)
 
 
-@app.route("/insert")
+@app.route("/insert", methods=["POST"])
 def insertUsers():
     user = {
         "matricula": request.form["matricula"],
@@ -90,19 +103,19 @@ def insertUsers():
         "correo": request.form["correo"],
         "contrasena": request.form["contrasena"],
     }
-
+    
     try:
         cuentas.insert_one(user)
-        #whatsapp = TwilioClient.messages.create(
-        #    from_="whatsapp:+19706708543",
-        #    body="El usuario %s se agregó a tu pagina web" % (
-        #        request.form["nombre"]),
-        #    to="whatsapp:+5215537070576"
-        #)
-        #print(whatsapp.sid)
+        comogusten = TwilioClient.messages.create(
+            from_="whatsapp:+19706708543",
+            body="El usuario %s se agregó a tu pagina web" % (
+                request.form["nombre"]),
+            to="whatsapp:+5215537070576"
+        )
+        print(comogusten.sid)
         return redirect(url_for("usuarios"))
     except Exception as e:
-        return "<p>El servicio no esta disponible =>: %s %s" % type(e), 
+        return "<p>El servicio no esta disponible =>: %s %s" % type(e), e
 
 
 @app.route("/find_one/<matricula>")
@@ -116,6 +129,7 @@ def find_one(matricula):
     except Exception as e:
         return "%s" % e
 
+
 @app.route("/delete/<matricula>")
 def delete_one(matricula):
     try:
@@ -123,22 +137,24 @@ def delete_one(matricula):
         if user.deleted_count == None:
             return "<p>La matricula %s nó existe</p>" % (matricula)
         else:
-            return "<p>Eliminamos %d matricula: %s </p>" % (user.deleted_count, matricula)
+            return redirect(url_for("usuarios"))
     except Exception as e:
         return "%s" % e
+
 
 @app.route("/update", methods=["POST"])
 def update():
     try:
         filter = {"matricula": request.form["matricula"]}
         user = {"$set": {
-            "nombre": request.form["nombre"]
+            "nombre": request.form["nombre"],
         }}
         cuentas.update_one(filter, user)
         return redirect(url_for("usuarios"))
 
     except Exception as e:
         return "error %s" % (e)
+
 
 @app.route('/create')
 def create():
