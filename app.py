@@ -3,7 +3,6 @@ import datetime
 import pymongo
 from decouple import config
 from twilio.rest import Client
-##import pyautogui as pag
 
 # FlASK
 #############################################################
