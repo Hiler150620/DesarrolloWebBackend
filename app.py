@@ -18,8 +18,8 @@ app.secret_key = "super secret key"
 mongodb_key = config('mongodb_key')
 client = pymongo.MongoClient(
     mongodb_key, tls=True, tlsAllowInvalidCertificates=True)
-db = client.Coronavirus
-cuentas = db.Usuario
+db = client.Escuela
+cuentas = db.alumno
 #############################################################
 
 
@@ -37,25 +37,25 @@ def insertUsers():
     user = {
         "matricula": request.form["matricula"],
         "nombre": request.form["nombre"],
-        "email": request.form["email"],
+        "correo": request.form["correo"],
         "contrasena": request.form["contrasena"],
     }
 
-    if cuentas.find_one({"email": user['email'] }):
-        return render_template("login.html", error= "Este correo ya ha sido utilizado")
+    if cuentas.find_one({"correo": user['correo'] }):
+        return render_template("login.html", error= "Correo ya utilizado!!!")
       
     else:
 
         try:
             cuentas.insert_one(user)
-            twl = TwilioClient.messages.create(
+            comogusten = TwilioClient.messages.create(
             from_="whatsapp:+19706708543",
             body="El usuario %s se agregó a tu pagina web" % (
             request.form["nombre"]),
             to="whatsapp:+5215537070576")
-            print(twl.sid)
-            email=user["email"]
-            session["email"]= email
+            print(comogusten.sid)
+            correo=user["correo"]
+            session["email"]= correo
 
             return render_template('index.html', data=user)
 
@@ -67,9 +67,9 @@ def insertUsers():
 @app.route('/', methods =["GET"])
 def home():
     email = None
-    if "email" in session:
-        email = session["email"]
-        user = cuentas.find_one({"email": (email)})
+    if "correo" in session:
+        email = session["correo"]
+        user = cuentas.find_one({"correo": (email)})
         
         return render_template('index.html', data=user)
     else:
@@ -79,23 +79,23 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     email = None
-    if "email" in session:
-        email=session['email']
-        user = cuentas.find_one({"email": (email)})
+    if "correo" in session:
+        email=session['correo']
+        user = cuentas.find_one({"correo": (email)})
        
         return render_template('index.html', data=user)
     else:
         if (request.method == "GET"):
-            return render_template("login.html", data="email")
+            return render_template("login.html", data="correo")
         else:
             email=None
-            email = request.form["email"]
+            email = request.form["correo"]
             password = request.form["contrasena"]
 
             ExpectedUser = verify(email,password)
 
             if (ExpectedUser != None):
-                session ["email"]=email
+                session ["correo"]=email
                 return render_template("index.html", data= ExpectedUser)
             else:
                 return render_template("login.html", error= "Usuario o contraseña incorrecta")
@@ -104,11 +104,11 @@ def login():
 
 def verify(email,password):
 
-        Expecteduser = cuentas.find_one({"email": (email), "contrasena": (password)})
+        Expecteduser = cuentas.find_one({"correo": (email), "contrasena": (password)})
         return Expecteduser
 '''
             try:
-                user = cuentas.find_one({"email": (email)})
+                user = cuentas.find_one({"correo": (email)})
                 if(user!=None):
                    #Lo encuentra
                     if (user["contrasena"] == password):
@@ -127,24 +127,19 @@ def verify(email,password):
 
 '''
 
-#Testasfcn sdkjf c#
                 
         
 @app.route('/logout')
 def logout():
-    if "email" in session:
+    if "correo" in session:
         session.clear()
         return redirect(url_for("home"))
 
 
-@app.route('/homepage')
-def homepage():
-    return render_template('Homepage.html')
-
 
 @app.route('/create')
 def create_form():  
-    return render_template('CreateForm.html')
+    return render_template('Create.html')
 
 
 @app.route("/usuarios")
