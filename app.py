@@ -1,14 +1,18 @@
-from flask import Flask, redirect, url_for, request, render_template, session
+import email
+from webbrowser import get
+from flask import Flask, redirect, render_template, request, session, url_for
 import datetime
 import pymongo
-from twilio.rest import Client
 from decouple import config
+from urllib3 import Retry
+from twilio.rest import Client
 
 # FlASK
 #############################################################
 app = Flask(__name__)
 app.permanent_session_lifetime = datetime.timedelta(days=365)
-app.secret_key = "secret key"
+app.secret_key = "super secret key"
+
 #############################################################
 
 # MONGODB
@@ -20,6 +24,7 @@ db = client.Escuela
 cuentas = db.alumno
 #############################################################
 
+
 # Twilio
 #############################################################
 account_sid = config('account_sid')
@@ -27,60 +32,51 @@ auth_token = config('auth_token')
 TwilioClient = Client(account_sid, auth_token)
 #############################################################
 
-
 @app.route('/')
 def home():
-    email = None
-    if 'email' in session:
-        email = session['email']
-    return render_template('index.html', error=email)
-
-
-@app.route('/login', methods=['GET'])
-def login():
-    email = None
-    if 'email' in session:
-        email = session['email']
-        return render_template('index.html', error=email)
-
-    return render_template('login.html', error=email)
-
-
-@app.route('/login', methods=['POST'])
-def login2Index():
-    email = ""
-    if 'email' in session:
-        return render_template('index.html', error=email)
-
-    email = request.form['email']
-    password = request.form['password']
-    session['email'] = email
-    session['password'] = password
-
-    return render_template('index.html', error=email)
-
-
-@app.route('/signup', methods=['POST'])
-def signup():
-    email = ""
-    if 'email' in session:
-        return render_template('index.html', error=email)
+    email=None
+    if "correo" in session:
+        email=session["correo"]
+        return render_template("index.html", data=email)
     else:
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
-        session['email'] = email
-        session['password'] = password
-        session['name'] = name
-    return render_template('index.html', error=email)
+        return render_template('login.html', data=email)
+
+@app.route('/login', methods = ["GET","POST"])
+def login():
+    email =None
+    if "correo" in session:
+        return render_template("index.html", data=email)
+    else:
+
+        if (request.method=="GET"):
+
+            return render_template("login.html", data="correo")
+        else:
+            email=None
+            email=request.form["correo"]
+            password= request.form["contrasena"]
+
+            ExpectedUser = verify(email,password)
+
+            if (ExpectedUser != None):
+                session ["correo"]=email
+                return render_template("index.html", data= email)
+            else:
+                return redirect(url_for("login"))
+                
+
+
+def verify(email,password):
+
+        Expecteduser = cuentas.find_one({"correo": (email), "contrasena": (password)})
+        return Expecteduser
 
 
 @app.route('/logout')
 def logout():
-    if 'email' in session:
-        email = session['email']
-    session.clear()
-    return redirect(url_for('home'))
+    if "correo" in session:
+        session.clear()
+        return redirect(url_for("home"))
 
 
 @app.route("/usuarios")
@@ -109,7 +105,7 @@ def insertUsers():
             to="whatsapp:+5215537070576"
         )
         print(twl.sid)
-        return redirect(url_for("usuarios"))
+        return redirect(url_for("login"))
     except Exception as e:
         return "<p>El servicio no esta disponible =>: %s %s" % type(e), e
 
@@ -143,7 +139,7 @@ def update():
     try:
         filter = {"matricula": request.form["matricula"]}
         user = {"$set": {
-            "nombre": request.form["nombre"],
+            "nombre": request.form["nombre"]
         }}
         cuentas.update_one(filter, user)
         return redirect(url_for("usuarios"))
@@ -152,6 +148,6 @@ def update():
         return "error %s" % (e)
 
 
-@app.route('/create')
+@app.route('/create', methods=["PÖST"])
 def create():
     return render_template('Create.html')
